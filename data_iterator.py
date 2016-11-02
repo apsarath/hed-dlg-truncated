@@ -106,6 +106,10 @@ def create_padded_batch(state, rng, x, vgg_x, force_end_of_utterance_token = Fal
     X = numpy.zeros((mx, n), dtype='int32')
     Xmask = numpy.zeros((mx, n), dtype='float32') 
 
+    new_vgg_x = numpy.zeros((n,len(vgg_x[0])), dtype='float32')
+    new_vgg_x[0:len(vgg_x)] = vgg_x
+    vgg_x = new_vgg_x
+
     # Variable to store each utterance in reverse form (for bidirectional RNNs)
     X_reversed = numpy.zeros((mx, n), dtype='int32')
 
@@ -178,7 +182,7 @@ def create_padded_batch(state, rng, x, vgg_x, force_end_of_utterance_token = Fal
              'num_preds': num_preds,                                 \
              'num_dialogues': len(x[0]),                             \
              'max_length': max_length,                                \
-             'vgg_x' : vgg_x.T                                       \
+             'vgg_x' : vgg_x                                       \
             }
 
     return batch

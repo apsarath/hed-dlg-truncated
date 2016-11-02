@@ -207,8 +207,8 @@ def main(args):
     if model.add_latent_gaussian_per_utterance:
         eval_grads = model.build_eval_grads()
 
-    random_sampler = search.RandomSampler(model)
-    beam_sampler = search.BeamSampler(model) 
+    #random_sampler = search.RandomSampler(model)
+    #beam_sampler = search.BeamSampler(model) 
 
     logger.debug("Load data")
     train_data, \
@@ -241,6 +241,7 @@ def main(args):
             patience >= 0):
 
         ### Sampling phase
+        """
         if step % 200 == 0:
             # First generate stochastic samples
             for param in model.params:
@@ -248,7 +249,7 @@ def main(args):
 
             samples, costs = random_sampler.sample([[]], n_samples=1, n_turns=3)
             print "Sampled : {}".format(samples[0])
-
+        """
 
         ### Training phase
         batch = train_data.next()
@@ -282,7 +283,7 @@ def main(args):
             y_neg = rng.choice(size=(10, max_length, x_data.shape[1]), a=model.idim, p=model.noise_probs).astype('int32')
             c, kl_divergence_cost, posterior_mean_variance = train_batch(x_data, x_data_reversed, y_neg, max_length, x_cost_mask, x_reset, ran_cost_utterance, ran_decoder_drop_mask)
         else:
-            c, kl_divergence_cost, posterior_mean_variance = train_batch(x_data, x_data_reversed, max_length, x_cost_mask, x_reset, ran_cost_utterance, ran_decoder_drop_mask)
+            c, kl_divergence_cost, posterior_mean_variance = train_batch(x_data, x_data_reversed, vgg_x, max_length, x_cost_mask, x_reset, ran_cost_utterance, ran_decoder_drop_mask)
 
         # Print batch statistics
         print 'cost_sum', c
@@ -352,7 +353,7 @@ def main(args):
                     batch = add_random_variables_to_batch(model.state, model.rng, batch, None, False)
                     ran_cost_utterance = batch['ran_var_constutterance']
                     ran_decoder_drop_mask = batch['ran_decoder_drop_mask']
-                    softmax_cost, var_cost, grads_wrt_softmax, grads_wrt_kl_divergence_cost = eval_grads(x_data, x_data_reversed, max_length, x_cost_mask, x_reset, ran_cost_utterance, ran_decoder_drop_mask)
+                    softmax_cost, var_cost, grads_wrt_softmax, grads_wrt_kl_divergence_cost = eval_grads(x_data, x_data_reversed, vgg_x, max_length, x_cost_mask, x_reset, ran_cost_utterance, ran_decoder_drop_mask)
                     softmax_costs[k] = softmax_cost
                     var_costs[k] = var_cost
                     gradients_wrt_softmax[k, :, :] = grads_wrt_softmax
@@ -424,8 +425,11 @@ def main(args):
                     x_reset = batch['x_reset']
                     ran_cost_utterance = batch['ran_var_constutterance']
                     ran_decoder_drop_mask = batch['ran_decoder_drop_mask']
+                    vgg_x = batch['vgg_x']
 
-                    c, kl_term, c_list, kl_term_list, posterior_mean_variance = eval_batch(x_data, x_data_reversed, max_length, x_cost_mask, x_reset, ran_cost_utterance, ran_decoder_drop_mask)
+
+                    print x_data.shape,vgg_x.shape
+                    c, kl_term, c_list, kl_term_list, posterior_mean_variance = eval_batch(x_data, x_data_reversed, vgg_x, max_length, x_cost_mask, x_reset, ran_cost_utterance, ran_decoder_drop_mask)
 
                     # Rehape into matrix, where rows are validation samples and columns are tokens
                     # Note that we use max_length-1 because we don't get a cost for the first token

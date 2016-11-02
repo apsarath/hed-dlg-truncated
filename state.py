@@ -640,8 +640,8 @@ def prototype_ubuntu_HRED():
     state['valid_dialogues'] = "/data/lisatmp4/sarath/data/input/myguesswhat/Validation.dialogues.pkl"
     state['dictionary'] = "/data/lisatmp4/sarath/data/input/myguesswhat/Training.dict.pkl"
     state['train_vgg'] = "/data/lisa/data/guesswhat/vgg.train.pkl"
-    state['valid_vgg'] = "/data/lisa/data/guesswhat/vgg.train.pkl"
-    state['test_vgg'] = "/data/lisa/data/guesswhat/vgg.train.pkl"
+    state['valid_vgg'] = "/data/lisa/data/guesswhat/vgg.valid.pkl"
+    state['test_vgg'] = "/data/lisa/data/guesswhat/vgg.test.pkl"
     state['vgg_feat'] = 1000
     state['save_dir'] = "/data/lisatmp4/sarath/data/output/cvpr2/"
 

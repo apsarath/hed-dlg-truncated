@@ -84,6 +84,7 @@ class SSIterator(object):
         self.data = cPickle.load(open(self.dialogue_file, 'r'))
         self.vgg = cPickle.load(open(self.vgg_file, 'r'))
         self.data_len = len(self.data)
+        assert self.data_len == len(self.vgg)
         logger.debug('Data len is %d' % self.data_len)
 
     def start(self):
