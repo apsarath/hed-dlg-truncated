@@ -40,6 +40,7 @@ class SSFetcher(threading.Thread):
 
                 index = self.indexes[offset]
                 s = diter.data[index]
+                vg = diter.vgg[index]
 
                 # Flatten if this is a list of lists
                 if len(s) > 0:
@@ -50,7 +51,7 @@ class SSFetcher(threading.Thread):
 
                 # Append only if it is shorter than max_len
                 if diter.max_len == -1 or len(s) <= diter.max_len:
-                    dialogues.append([s])
+                    dialogues.append([s,vg])
 
             if len(dialogues):
                 diter.queue.put(dialogues)
@@ -62,6 +63,7 @@ class SSFetcher(threading.Thread):
 class SSIterator(object):
     def __init__(self,
                  dialogue_file,
+                 vgg_file,
                  batch_size,
                  seed,
                  max_len=-1,
@@ -69,6 +71,7 @@ class SSIterator(object):
                  dtype="int32"):
 
         self.dialogue_file = dialogue_file
+        self.vgg_file = vgg_file
         self.batch_size = batch_size
 
         args = locals()
@@ -79,6 +82,7 @@ class SSIterator(object):
 
     def load_files(self):
         self.data = cPickle.load(open(self.dialogue_file, 'r'))
+        self.vgg = cPickle.load(open(self.vgg_file, 'r'))
         self.data_len = len(self.data)
         logger.debug('Data len is %d' % self.data_len)
 

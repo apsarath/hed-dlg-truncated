@@ -622,6 +622,7 @@ def prototype_ubuntu_HRED():
     state = prototype_state()
 
     state['end_sym_sentence'] = '__eot__'
+    #state['end_sym_utterance'] = '__eou__'
 
     state['unk_sym'] = 0 # Unknown word token <unk>
     state['eos_sym'] = 1 # end-of-utterance symbol </s>
@@ -634,15 +635,19 @@ def prototype_ubuntu_HRED():
     state['off_screen_sym'] = -1 # off screen symbol <off_screen>
     state['pause_sym'] = -1 # pause symbol <pause>
 
-    state['train_dialogues'] = "../UbuntuData/Training.dialogues.pkl"
-    state['test_dialogues'] = "../UbuntuData/Test.dialogues.pkl"
-    state['valid_dialogues'] = "../UbuntuData/Validation.dialogues.pkl"
-    state['dictionary'] = "../UbuntuData/Dataset.dict.pkl"
-    state['save_dir'] = "Output"
+    state['train_dialogues'] = "/data/lisatmp4/sarath/data/input/myguesswhat/Training.dialogues.pkl"
+    state['test_dialogues'] = "/data/lisatmp4/sarath/data/input/myguesswhat/Test.dialogues.pkl"
+    state['valid_dialogues'] = "/data/lisatmp4/sarath/data/input/myguesswhat/Validation.dialogues.pkl"
+    state['dictionary'] = "/data/lisatmp4/sarath/data/input/myguesswhat/Training.dict.pkl"
+    state['train_vgg'] = "/data/lisa/data/guesswhat/vgg.train.pkl"
+    state['valid_vgg'] = "/data/lisa/data/guesswhat/vgg.train.pkl"
+    state['test_vgg'] = "/data/lisa/data/guesswhat/vgg.train.pkl"
+    state['vgg_feat'] = 1000
+    state['save_dir'] = "/data/lisatmp4/sarath/data/output/cvpr2/"
 
-    state['max_grad_steps'] = 80
+    state['max_grad_steps'] = 300
 
-    state['valid_freq'] = 5000
+    state['valid_freq'] = 500
 
     state['prefix'] = "UbuntuModel_"
     state['updater'] = 'adam'

@@ -92,7 +92,7 @@ def add_random_variables_to_batch(state, rng, batch, prev_batch, evaluate_mode):
     return batch
 
 
-def create_padded_batch(state, rng, x, force_end_of_utterance_token = False):
+def create_padded_batch(state, rng, x, vgg_x, force_end_of_utterance_token = False):
     # Find max length in batch
     mx = 0
     for idx in xrange(len(x[0])):
@@ -145,6 +145,17 @@ def create_padded_batch(state, rng, x, force_end_of_utterance_token = False):
         # Note: if we need mask to depend on tokens inside X, then we need to 
         # create a corresponding mask for X_reversed and send it further in the model
         Xmask[0:dialogue_length, idx] = 1.
+        
+        #added by Sarath
+        fk = 1
+        for kk in range(1,dialogue_length):
+            if fk==1:
+                Xmask[kk,idx] = 1
+            else:
+                Xmask[kk,idx] = 0
+            if X[kk,idx] == state['eos_sym']:
+                fk*=-1
+
 
         # Reverse all utterances
         # TODO: For backward compatibility. This should be removed in future versions
@@ -159,21 +170,22 @@ def create_padded_batch(state, rng, x, force_end_of_utterance_token = False):
                 break
 
 
-    assert num_preds == numpy.sum(Xmask) - numpy.sum(Xmask[0, :])
+    num_preds = numpy.sum(Xmask) - numpy.sum(Xmask[0, :])
 
     batch = {'x': X,                                                 \
              'x_reversed': X_reversed,                               \
              'x_mask': Xmask,                                        \
              'num_preds': num_preds,                                 \
              'num_dialogues': len(x[0]),                             \
-             'max_length': max_length                                \
+             'max_length': max_length,                                \
+             'vgg_x' : vgg_x.T                                       \
             }
 
     return batch
 
 class Iterator(SSIterator):
-    def __init__(self, dialogue_file, batch_size, **kwargs):
-        SSIterator.__init__(self, dialogue_file, batch_size,                          \
+    def __init__(self, dialogue_file, vgg_file, batch_size, **kwargs):
+        SSIterator.__init__(self, dialogue_file, vgg_file, batch_size,                          \
                             seed=kwargs.pop('seed', 1234),                            \
                             max_len=kwargs.pop('max_len', -1),                        \
                             use_infinite_loop=kwargs.pop('use_infinite_loop', False))
@@ -209,17 +221,20 @@ class Iterator(SSIterator):
 
             # Split list of words from the dialogue index
             data_x = []
+            vgg_x = []
             for i in range(len(data)):
                 data_x.append(data[i][0])
+                vgg_x.append(data[i][1])
 
             x = numpy.asarray(list(itertools.chain(data_x)))
+            vgg_x = numpy.asarray(vgg_x)
 
             lens = numpy.asarray([map(len, x)])
             order = numpy.argsort(lens.max(axis=0))
                  
             for k in range(number_of_batches):
                 indices = order[k * batch_size:(k + 1) * batch_size]
-                full_batch = create_padded_batch(self.state, self.rng, [x[indices]])
+                full_batch = create_padded_batch(self.state, self.rng, [x[indices]], vgg_x[indices])
 
                 # Then split batches to have size 'max_grad_steps'
                 splits = int(math.ceil(float(full_batch['max_length']) / float(self.state['max_grad_steps'])))
@@ -246,7 +261,7 @@ class Iterator(SSIterator):
                     # that way, when we add them together, we get the total number of dialogues.
                     batch['num_dialogues'] = float(full_batch['num_dialogues']) / float(splits)
                     batch['x_reset'] = numpy.ones(self.state['bs'], dtype='float32')
-
+                    batch['vgg_x'] = full_batch['vgg_x']
                     batches.append(batch)
 
                 if len(batches) > 0:
@@ -288,6 +303,7 @@ class Iterator(SSIterator):
 def get_train_iterator(state):
     train_data = Iterator(
         state['train_dialogues'],
+        state['train_vgg'],
         int(state['bs']),
         state=state,
         seed=state['seed'],
@@ -297,6 +313,7 @@ def get_train_iterator(state):
      
     valid_data = Iterator(
         state['valid_dialogues'],
+        state['valid_vgg'],
         int(state['bs']),
         state=state,
         seed=state['seed'],
@@ -311,6 +328,7 @@ def get_test_iterator(state):
 
     test_data = Iterator(
         test_path,
+        state['test_vgg'],
         int(state['bs']), 
         state=state,
         seed=state['seed'],

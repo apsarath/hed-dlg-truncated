@@ -32,6 +32,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("input", type=str, help="Dialogue file; assumed shuffled with one document (e.g. one movie dialogue, or one Twitter conversation or one Ubuntu conversation) per line")
 parser.add_argument("--cutoff", type=int, default=-1, help="Vocabulary cutoff (optional)")
+parser.add_argument("--fcutoff", type=int, default=1, help="frequency cutoff (optional)")
 parser.add_argument("--dict", type=str, default="", help="External dictionary (pkl file)")
 parser.add_argument("output", type=str, help="Prefix of the pickle binarized dialogue corpus")
 args = parser.parse_args()
@@ -89,12 +90,14 @@ else:
             '<second_speaker>': 4, '<third_speaker>': 5, '<minor_speaker>': 6, \
             '<voice_over>': 7, '<off_screen>': 8, '<pause>': 9}
 
+
     # Add other tokens to vocabulary in the order of their frequency
     i = 10
     for (word, count) in vocab_count:
         if not word in vocab:
-            vocab[word] = i
-            i += 1
+            if count>=args.fcutoff:
+                vocab[word] = i
+                i += 1
 
 logger.info("Vocab size %d" % len(vocab))
 

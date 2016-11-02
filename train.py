@@ -268,6 +268,8 @@ def main(args):
         x_reset = batch['x_reset']
         ran_cost_utterance = batch['ran_var_constutterance']
         ran_decoder_drop_mask = batch['ran_decoder_drop_mask']
+        vgg_x = batch['vgg_x']
+        print vgg_x.shape
 
         is_end_of_batch = False
         if numpy.sum(numpy.abs(x_reset)) < 1:
